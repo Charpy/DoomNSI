@@ -6,6 +6,17 @@ import pyglet as pg
 from pyglet import shapes
 from math import cos, sin
 
+# Configuration des commandes
+cmd = {"up":    ["pg.window.key.UP","pg.window.key.Z",122],
+       "down":  ["pg.window.key.DOWN","pg.window.key.S"],
+       "left":  ["pg.window.key.LEFT","pg.window.key.Q"],
+       "right": ["pg.window.key.RIGHT","pg.window.key.D"],
+       "reload":["pg.window.key.R", 65456],  #Touche 0 du pad num
+       "walk":  [65505 , 65506], #Touche MAJG ou MAJD
+       "jump":  [32 , 65508], #SPACE ou CTRLD
+       "fire":  ["pyglet.window.mouse.LEFT"]
+       }
+
 global x_joueur, y_joueur, angle_joueur_horizontal, sensi_horizontale
 fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
@@ -34,10 +45,11 @@ def on_key_press(symbol, modifiers):
   global x_joueur, y_joueur, angle_joueur_horizontal
 
   print("Touche pressée n°", symbol)
-  # Touche echap : on quitte le jeu  
-  if symbol == 65307: pg.app.exit()
+
+  if symbol == 65307: pg.app.exit() # Echap
   
-  if symbol == pg.window.key.Z or symbol == pg.window.key.UP: #haut
+#  if symbol == pg.window.key.Z or symbol == pg.window.key.UP: #haut
+  if symbol in cmd["up"]: #haut
       y_joueur += 10
 
   if symbol == pg.window.key.S or symbol == pg.window.key.DOWN: #bas
