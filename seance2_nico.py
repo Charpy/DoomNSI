@@ -26,7 +26,7 @@ fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
 x_joueur = fenetre2D_largeur // 2
 y_joueur = fenetre2D_hauteur // 2
-angle_joueur = 0 # Angle de déplacement
+angle_joueur = 0 # Angle  initial en rad (0 = vers la droite)
 sensi_horizontale = 0.01
 vitesse = 25
 
@@ -41,13 +41,14 @@ window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False , resizable=True)
 
 # Groupes d'objets à dessiner
 joueur = pg.graphics.Batch()
-gui = pg.graphics.Batch() # interface
+gui = pg.graphics.Batch() # interface joueur
 
 
 #Chargement des ressources (images, sons..)
 pg.resource.path = ['assets/']
 pg.resource.reindex()
 
+# Autres exemples d'images de vues de dessus : https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fbrashmonkey.com%2Fforum%2Fuploads%2Fmonthly_2016_03%2Fsample.jpg.9364511bc24a5c41158883fca7523df9.jpg&f=1&nofb=1&ipt=c7af4569ced59c7c7b23231d4762263435fddd8f1309ae58ba908c168a2fed6c&ipo=images
 player_image = pg.resource.image("joueur2D.png") #vue de dessus
 
 def centrer_image(image):
@@ -57,6 +58,11 @@ def centrer_image(image):
 
 centrer_image(player_image)
 
+# Création des sprites, ce sont des instances 
+# des images, affichés à l'écran
+player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur)
+
+
 #Chargement des infos sur la fenêtre
 coord = str(x_joueur) + "," + str(y_joueur)
 coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15)
@@ -65,12 +71,14 @@ titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.hei
 # détection d'un mouvement de la souris
 @window2d.event
 def on_mouse_motion(x, y, dx, dy):
-    global x_joueur, y_joueur, angle_joueur
+    global angle_joueur
     print("Souris x, y, dx, dy :", "\t", x, "\t", y, "\t", dx, "\t", dy)
     angle_joueur += sensi_horizontale*dx
     print("Angle joueur : ", angle_joueur)
+    player_sprite.rotation = -angle_joueur*180/pi #angle de rot (en deg)
     
     angle_joueur = angle_joueur % (2*pi) # conserver l'angle entre 0 et 2pi
+
 
 # détection d'un touche pressée au clavier
 @window2d.event
@@ -146,10 +154,16 @@ def on_resize(width, height):
 @window2d.event
 def on_draw():
     window2d.clear()
-    cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)
+
+    # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
+    # player_image.blit(x_joueur, y_joueur)
+    player_sprite.x = x_joueur
+    player_sprite.y = y_joueur
+    player_sprite.draw()
+
     line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, batch = joueur)
     
-    coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15, batch=gui)
+    coord_label.text = coord
     coord_label.draw()
 
     titre2D_label.draw()
