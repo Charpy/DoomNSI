@@ -31,15 +31,35 @@ vitesse = 25
 # création de la fenêtre pour le plan 2D
 # résolution : 320x200 (comme le Doom de l'époque)
 window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False)
-
 # A retirer quand on aura la fenêtre 3D:
 # mettre "mouse exclusive mode" pour masquer le curseur de la souris
 # voir https://pyglet.readthedocs.io/en/latest/programming_guide/mouse.html#mouse-exclusivity
 window2d.set_exclusive_mouse(True)
 
 
-# creating a batch object
+# Groupes d'objets à dessiner
 joueur = pg.graphics.Batch()
+gui = pg.graphics.Batch() # interface
+
+
+#Chargement des ressources (images, sons..)
+pg.resource.path = ['assets/']
+pg.resource.reindex()
+
+player_image = pg.resource.image("joueur2D.png") #vue de dessus
+
+def centrer_image(image):
+    """Positionner l'origine de l'image en son centre"""
+    image.anchor_x = image.width // 2
+    image.anchor_y = image.height // 2
+
+centrer_image(player_image)
+
+#Chargement des infos sur la fenêtre
+# coord_label = pg.text.Label(text=str(x_joueur)+","+str(y_joueur), x=5, y=window2d.height - 15)
+coord = str(str(x_joueur) + "," + str(y_joueur))
+coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15)
+titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.height - 15, anchor_x='center')
 
 # détection d'un mouvement de la souris
 @window2d.event
@@ -49,7 +69,7 @@ def on_mouse_motion(x, y, dx, dy):
     angle_joueur += sensi_horizontale*dx
     print("Angle joueur : ", angle_joueur)
     
-    angle_joueur = angle_joueur % (2*pi) # angle compris entre 0 et 2pi
+    angle_joueur = angle_joueur % (2*pi) # conserver l'angle entre 0 et 2pi
 
 # détection d'un touche pressée au clavier
 @window2d.event
@@ -79,8 +99,7 @@ def on_key_press(symbol, modifiers):
   if symbol in cmd["reload"]: #recharger
       print("Rechargement arme")
 
-  if symbol in cmd["use"]: #marcher au lieu de courir
-      # Diminuer vitesse d'avance du joueur
+  if symbol in cmd["use"]: #Utiliser objet
       print("Utiliser")
 
   if symbol in cmd["walk"]: #marcher au lieu de courir
@@ -121,7 +140,13 @@ def on_key_release(symbol, modifiers):
 def on_draw():
     window2d.clear()
     cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)
-    line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width=7, batch=joueur)
+    line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, batch = joueur)
+    
+    coord = str(str(round(x_joueur,None)) + "," + str(round(y_joueur,None)))
+    coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15, batch=gui)
+    coord_label.draw()
+    titre2D_label.draw()
+
     joueur.draw()
 
 # lancement du jeu
