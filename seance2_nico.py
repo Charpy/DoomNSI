@@ -5,6 +5,7 @@
 import pyglet as pg
 from pyglet import shapes
 from math import cos, sin, pi
+from random import randint
 
 # Configuration des commandes
 cmd = {"forward":    [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou haut
@@ -30,6 +31,12 @@ vitesse = 25
 # création de la fenêtre pour le plan 2D
 # résolution : 320x200 (comme le Doom de l'époque)
 window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False)
+
+# A retirer quand on aura la fenêtre 3D:
+# mettre "mouse exclusive mode" pour masquer le curseur de la souris
+# voir https://pyglet.readthedocs.io/en/latest/programming_guide/mouse.html#mouse-exclusivity
+window2d.set_exclusive_mouse(True)
+
 
 # creating a batch object
 joueur = pg.graphics.Batch()
@@ -118,4 +125,6 @@ def on_draw():
     joueur.draw()
 
 # lancement du jeu
-pg.app.run()
+pg.app.run(1/60)  # 60Hz
+
+print("Programme terminé")
