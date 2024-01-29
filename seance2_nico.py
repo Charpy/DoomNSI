@@ -6,6 +6,7 @@ import pyglet as pg
 from pyglet import shapes
 from math import cos, sin, pi
 from random import randint
+from datetime import datetime  # Juste pour queqlues tests
 
 # Configuration des commandes
 cmd = {"forward":    [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou haut
@@ -19,7 +20,8 @@ cmd = {"forward":    [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou 
        "fire":  [pg.window.mouse.LEFT]
        }
 
-global x_joueur, y_joueur, angle_joueur, sensi_horizontale, vitesse
+# global x_joueur, y_joueur, angle_joueur, sensi_horizontale, vitesse, coord_label
+# global x_joueur, y_joueur, angle_joueur, sensi_horizontale, vitesse, coord_label
 fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
 x_joueur = fenetre2D_largeur // 2
@@ -30,11 +32,11 @@ vitesse = 25
 
 # création de la fenêtre pour le plan 2D
 # résolution : 320x200 (comme le Doom de l'époque)
-window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False)
+window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False , resizable=True)
 # A retirer quand on aura la fenêtre 3D:
 # mettre "mouse exclusive mode" pour masquer le curseur de la souris
 # voir https://pyglet.readthedocs.io/en/latest/programming_guide/mouse.html#mouse-exclusivity
-window2d.set_exclusive_mouse(True)
+#window2d.set_exclusive_mouse(True)
 
 
 # Groupes d'objets à dessiner
@@ -56,8 +58,7 @@ def centrer_image(image):
 centrer_image(player_image)
 
 #Chargement des infos sur la fenêtre
-# coord_label = pg.text.Label(text=str(x_joueur)+","+str(y_joueur), x=5, y=window2d.height - 15)
-coord = str(str(x_joueur) + "," + str(y_joueur))
+coord = str(x_joueur) + "," + str(y_joueur)
 coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15)
 titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.height - 15, anchor_x='center')
 
@@ -74,7 +75,7 @@ def on_mouse_motion(x, y, dx, dy):
 # détection d'un touche pressée au clavier
 @window2d.event
 def on_key_press(symbol, modifiers):
-  global x_joueur, y_joueur, angle_joueur, vitesse
+  global x_joueur, y_joueur, angle_joueur, vitesse, coord
 
   print("Touche pressée n°", symbol)
 
@@ -83,18 +84,22 @@ def on_key_press(symbol, modifiers):
   if symbol in cmd["forward"]: #haut
       x_joueur += vitesse * cos(angle_joueur)
       y_joueur += vitesse * sin(angle_joueur)
+      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
 
   if symbol in cmd["backward"]: #bas
       x_joueur -= vitesse * cos(angle_joueur)
       y_joueur -= vitesse * sin(angle_joueur)
+      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
 
   if symbol in cmd["straf_left"]: #gauche
       x_joueur -= vitesse * sin(angle_joueur)
       y_joueur += vitesse * cos(angle_joueur)
+      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
 
   if symbol in cmd["straf_right"]: #droite
       x_joueur += vitesse * sin(angle_joueur)
       y_joueur -= vitesse * cos(angle_joueur)
+      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
 
   if symbol in cmd["reload"]: #recharger
       print("Rechargement arme")
@@ -116,14 +121,8 @@ def on_key_press(symbol, modifiers):
       #Tirer
       print("Tir")
       pass
-'''
-  if symbol == pg.window.key.UP or symbol == pg.window.key.LEFT: #fleche haut
-       angle_joueur_horizontal += 0.5
-       
-  if symbol == pg.window.key.DOWN or symbol == pg.window.key.RIGHT: #fleche haut
-       angle_joueur_horizontal -= 0.5
-'''
-       
+
+
 # détection d'une touche relâchée au clavier
 @window2d.event
 def on_key_release(symbol, modifiers):
@@ -135,19 +134,31 @@ def on_key_release(symbol, modifiers):
       vitesse *= 2.5
       print("Courir")
 
-# évènement principal : rendu graphique
+@window2d.event
+def on_resize(width, height):
+    global titre2D_label
+    print("on_resize a été appelé")
+    titre2D_label = pg.text.Label(text="Vue 2D", x=width//2, y=height - 15, anchor_x='center') #Au cas où la fenetre ait été redimensionnée
+
+
+
+# evènement principal : rendu graphique
 @window2d.event
 def on_draw():
     window2d.clear()
     cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)
     line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, batch = joueur)
     
-    coord = str(str(round(x_joueur,None)) + "," + str(round(y_joueur,None)))
     coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15, batch=gui)
     coord_label.draw()
+
     titre2D_label.draw()
 
     joueur.draw()
+
+    # print("Coucou le refresh!")
+    # print(datetime.now())
+
 
 # lancement du jeu
 pg.app.run(1/60)  # 60Hz
