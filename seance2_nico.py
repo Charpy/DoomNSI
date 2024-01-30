@@ -40,6 +40,7 @@ window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False , resizable=True)
 #window2d.set_exclusive_mouse(True)
 
 # Initialisation de KeyStateHandler et lien à la fenêtre
+# KeyStateHandler traque l'état des touches du clavier
 keys = key.KeyStateHandler()
 window2d.push_handlers(keys)
 
@@ -70,6 +71,8 @@ player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur)
 # Bonnes musiques d'ambiance libres : https://incompetech.com/music/royalty-free/music.html
 liste_ambiance = ['Brain Dance.mp3', 'Galactic Rap.mp3', 'Lord of the Rangs.mp3', 'Cloud Dancer.mp3', 'Karstenholymoly_-_The_Invisible_Enemy_(feat._bangcorrupt).mp3', 'SCP-x2x_horror.mp3']
 ambiance = pg.resource.media(liste_ambiance[randint(0,len(liste_ambiance))])
+gunfire = pg.resource.media('beretta m12 9 mm.mp3', streaming=False) # streaming=False pour les bruitages rapides! voir https://pyglet.readthedocs.io/en/latest/programming_guide/quickstart.html#playing-sounds-and-music
+
 ambiance.play()
 
 
@@ -96,6 +99,7 @@ def on_mouse_press(x, y, button, modifiers):
     if button in cmd["fire"]: #Tir principal
       #Tirer
       print("Tir")
+      gunfire.play()
     
     if button in cmd["zoom"]: #Zoom de l'arme en main
       #Zoom
@@ -227,27 +231,22 @@ def update(dt):
         coord = f"{round(x_joueur)}, {round(y_joueur)}"
     
     if press(cmd["reload"]): #recharger
-      print("Rechargement arme")
+        print("Rechargement arme")
 
     if press(cmd["backward"]): #Utiliser objet
-      print("Utiliser")
+        print("Utiliser")
 
     if press(cmd["walk"]): #marcher au lieu de courir
-      # Diminuer vitesse d'avance du joueur
-      vitesse = vitesse_max / 2
-      print("Marcher")
+        # Diminuer vitesse d'avance du joueur
+        vitesse = vitesse_max / 2
+        print("Marcher")
     else:
-       vitesse = vitesse_max
+        vitesse = vitesse_max
 
     if press(cmd["jump"]): #saut
-      #Sauter !
-      print("Sauter")
-      pass
-
-    if press(cmd["fire"]): #Tir principal
-      #Tirer
-      print("Tir")
-      pass
+        #Sauter !
+        print("Sauter")
+        pass
 
 # Configuration de la fonction de mise à jour avec functools.partial
 pg.clock.schedule_interval(update, 1/120)
