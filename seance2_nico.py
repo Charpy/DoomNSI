@@ -66,6 +66,12 @@ centrer_image(player_image)
 # des images, affichés à l'écran
 player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur)
 
+# Initialisation de la musique d'ambiance
+# Bonnes musiques d'ambiance libres : https://incompetech.com/music/royalty-free/music.html
+liste_ambiance = ['Brain Dance.mp3', 'Galactic Rap.mp3', 'Lord of the Rangs.mp3', 'Cloud Dancer.mp3', 'Karstenholymoly_-_The_Invisible_Enemy_(feat._bangcorrupt).mp3', 'SCP-x2x_horror.mp3']
+ambiance = pg.resource.media(liste_ambiance[randint(0,len(liste_ambiance))])
+ambiance.play()
+
 
 #Chargement des infos sur la fenêtre
 coord = str(x_joueur) + "," + str(y_joueur)
@@ -171,7 +177,6 @@ def on_draw():
     window2d.clear()
 
     # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
-    # player_image.blit(x_joueur, y_joueur)
     player_sprite.x = x_joueur
     player_sprite.y = y_joueur
     player_sprite.draw()
@@ -245,7 +250,7 @@ def update(dt):
       pass
 
 # Configuration de la fonction de mise à jour avec functools.partial
-pg.clock.schedule_interval(update, 1/60)
+pg.clock.schedule_interval(update, 1/120)
 # lancement du jeu
 # pg.clock.schedule(on_key_press) #test
 # pg.app.run()  # 60Hz
