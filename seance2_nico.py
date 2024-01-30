@@ -9,17 +9,17 @@ from random import randint
 from datetime import datetime  # Juste pour queqlues tests
 
 # Configuration des commandes
-cmd = {"forward":    [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou haut
-       "backward":  [pg.window.key.DOWN , pg.window.key.S], #vers l'arrière : S ou bas
+cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou haut
+       "backward":    [pg.window.key.DOWN , pg.window.key.S], #vers l'arrière : S ou bas
        "straf_left":  [pg.window.key.LEFT , pg.window.key.Q], #déplacement latéral gauche : Q ou gauche
        "straf_right": [pg.window.key.RIGHT , pg.window.key.D], #déplacement latéral droite : D ou droite
-       "reload":[pg.window.key.R, 65456],  #recharger : R ou Touche 0 du pad num
-       "use":[pg.window.key.E, 65457], # utiliser : E ou Touche 1 du pad num
-       "walk":  [65505 , 65506], #Marcher : Touche MAJG ou MAJD
-       "jump":  [32 , 65508], #Sauter : SPACE ou CTRLD
-       "fire":  [pg.window.mouse.LEFT]
+       "reload":      [pg.window.key.R, pg.window.key.NUM_0],  #recharger : R ou Touche 0 du pad num
+       "use":         [pg.window.key.E, pg.window.key.NUM_1], # utiliser : E ou Touche 1 du pad num
+       "walk":        [pg.window.key.LSHIFT , pg.window.key.RSHIFT], #Marcher : Touche MAJG ou MAJD
+       "jump":        [pg.window.key.SPACE , pg.window.key.RCTRL], #Sauter : SPACE ou CTRLD
+       "fire":        [1], #clic gauche
+       "zoom":        [4] #clic droit
        }
-
 # global x_joueur, y_joueur, angle_joueur, sensi_horizontale, vitesse, coord_label
 # global x_joueur, y_joueur, angle_joueur, sensi_horizontale, vitesse, coord_label
 fenetre2D_largeur = 640
@@ -79,6 +79,17 @@ def on_mouse_motion(x, y, dx, dy):
     
     angle_joueur = angle_joueur % (2*pi) # conserver l'angle entre 0 et 2pi
 
+# détection d'un clic de la souris
+@window2d.event
+def on_mouse_press(x, y, button, modifiers):
+    print("Bouton appuyé et coord :", x, y, button)
+    if button in cmd["fire"]: #Tir principal
+      #Tirer
+      print("Tir")
+    
+    if button in cmd["zoom"]: #Zoom de l'arme en main
+      #Zoom
+      print("Zoom")
 
 # détection d'un touche pressée au clavier
 @window2d.event
@@ -144,11 +155,13 @@ def on_key_release(symbol, modifiers):
 
 @window2d.event
 def on_resize(width, height):
-    global titre2D_label
+    global titre2D_label, coord_label
     print("on_resize a été appelé")
+    coord_label = pg.text.Label(coord, x=5, y=height - 15)
     titre2D_label = pg.text.Label(text="Vue 2D", x=width//2, y=height - 15, anchor_x='center') #Au cas où la fenetre ait été redimensionnée
 
-
+@window2d.event
+# pg.clock.schedule_interval(.5)
 
 # evènement principal : rendu graphique
 @window2d.event
