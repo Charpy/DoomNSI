@@ -22,14 +22,24 @@ cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou
        "zoom":        [4] #clic droit
        }
 
+# Configuration des vaiables
+
 fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
+sensi_horizontale = 0.01
+vitesse_max = 0.0125
+
 x_joueur = fenetre2D_largeur // 2
 y_joueur = fenetre2D_hauteur // 2
-angle_joueur = 0 # Angle  initial en rad (0 = vers la droite)
-sensi_horizontale = 0.01
-vitesse_max = 4
+angle_joueur = pi/2 # Angle  initial en rad (0 = vers la droite)
 vitesse = vitesse_max
+
+
+
+press, release, draw, loopnumber, last_loopnumber = 0, 0, 0, 0, 0
+
+
+
 
 # création de la fenêtre pour le plan 2D
 # résolution : 320x200 (comme le Doom de l'époque)
@@ -48,7 +58,6 @@ window2d.push_handlers(keys)
 joueur = pg.graphics.Batch()
 gui = pg.graphics.Batch() # interface joueur
 
-
 #Chargement des ressources (images, sons..)
 pg.resource.path = ['assets/']
 pg.resource.reindex()
@@ -66,13 +75,16 @@ centrer_image(player_image)
 # Création des sprites, ce sont des instances 
 # des images, affichés à l'écran
 player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur)
+player_sprite.rotation = -angle_joueur*180/pi #Orientation initiale du sprite
 
 # Initialisation de la musique d'ambiance
 # Bonnes musiques d'ambiance libres : https://incompetech.com/music/royalty-free/music.html
 liste_ambiance = ['Brain Dance.mp3', 'Galactic Rap.mp3', 'Lord of the Rangs.mp3', 'Cloud Dancer.mp3', 'Karstenholymoly_-_The_Invisible_Enemy_(feat._bangcorrupt).mp3', 'SCP-x2x_horror.mp3']
-ambiance = pg.resource.media(liste_ambiance[randint(0,len(liste_ambiance))])
+ambiance = pg.resource.media(liste_ambiance[randint(0,len(liste_ambiance)-1)])
 gunfire = pg.resource.media('beretta m12 9 mm.mp3', streaming=False) # streaming=False pour les bruitages rapides! voir https://pyglet.readthedocs.io/en/latest/programming_guide/quickstart.html#playing-sounds-and-music
+gunreload = pg.resource.media('Pistolet-reload.mp3', streaming=False)
 
+# etatSons = {} #Etat d'un son (non joué / joué), utile pour certains sons qui ne doivent pas s'auto-chevaucher
 ambiance.play()
 
 
@@ -105,69 +117,8 @@ def on_mouse_press(x, y, button, modifiers):
       #Zoom
       print("Zoom")
 
-'''
-# détection d'une touche pressée au clavier
-@window2d.event
-def on_key_press(symbol, modifiers):
-  global x_joueur, y_joueur, angle_joueur, vitesse, coord
-
-  print("Touche pressée n°", symbol)
-
-  if symbol == pg.window.key.ESCAPE: pg.app.exit() # Echap pour quitter
-  
-  if symbol in cmd["forward"]: #haut
-      x_joueur += vitesse * cos(angle_joueur)
-      y_joueur += vitesse * sin(angle_joueur)
-      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
-
-  if symbol in cmd["backward"]: #bas
-      x_joueur -= vitesse * cos(angle_joueur)
-      y_joueur -= vitesse * sin(angle_joueur)
-      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
-
-  if symbol in cmd["straf_left"]: #gauche
-      x_joueur -= vitesse * sin(angle_joueur)
-      y_joueur += vitesse * cos(angle_joueur)
-      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
-
-  if symbol in cmd["straf_right"]: #droite
-      x_joueur += vitesse * sin(angle_joueur)
-      y_joueur -= vitesse * cos(angle_joueur)
-      coord = str(round(x_joueur,None)) + "," + str(round(y_joueur,None))
-
-  if symbol in cmd["reload"]: #recharger
-      print("Rechargement arme")
-
-  if symbol in cmd["use"]: #Utiliser objet
-      print("Utiliser")
-
-  if symbol in cmd["walk"]: #marcher au lieu de courir
-      # Diminuer vitesse d'avance du joueur
-      vitesse /= 2.5
-      print("Marcher")
-
-  if symbol in cmd["jump"]: #saut
-      #Sauter !
-      print("Sauter")
-      pass
-
-  if symbol in cmd["fire"]: #Tir principal
-      #Tirer
-      print("Tir")
-      pass
-
-
-# détection d'une touche relâchée au clavier
-@window2d.event
-def on_key_release(symbol, modifiers):
-    global vitesse
-    print("Touche relâchée n°", symbol)
-    if symbol in cmd["walk"]: #Cesser de marcher et re-courir
-      vitesse *= 2.5
-      print("Courir")
-
-'''
-
+# Détection d'un redimensionnement de la fenêtre par l'utilisateur
+# On recalcule les positions de l'interface
 @window2d.event
 def on_resize(width, height):
     global titre2D_label, coord_label
@@ -175,7 +126,7 @@ def on_resize(width, height):
     coord_label = pg.text.Label(coord, x=5, y=height - 15)
     titre2D_label = pg.text.Label(text="Vue 2D", x=width//2, y=height - 15, anchor_x='center') #Au cas où la fenetre ait été redimensionnée
 
-# evènement principal : rendu graphique
+# Evènement principal : rendu graphique
 @window2d.event
 def on_draw():
     window2d.clear()
@@ -194,67 +145,122 @@ def on_draw():
 
     joueur.draw()
 
-    # print("Coucou le refresh!")
+    # print("refresh!")
     # print(datetime.now())
 
+# @window2d.event
+# def on_draw():
+#     global draw, last_loopnumber, loopnumber
+#     draw += 1
+#     # print(loopnumber-last_loopnumber,"loops since last draw")
+#     # last_loopnumber = loopnumber
+#     # print("on_draw", draw)
+#     window2d.clear()
+
 #Test si une des touches d'une action est active
-def press(touches):
+def est_pressee(touches):
+    global keys
     return True in list(map(lambda x:keys[x]==True , touches))
+# def est_pressee(touches):
+#     print("touches",touches)
+#     for touche in touches:
+
+#     return True in list(map(lambda x:keys[x]==True , touches))
+
+
+
+@window2d.event
+def on_key_press(symbol, modifiers):
+    global press
+    press += 1
+
+    print("key press", symbol)
+
+    window2d.push_handlers(keys) #Récupére l'état des touches (bool)
+
+
+    # Touches d'actions discontinues (une seule exécution en maintenant la touche)
+
+    if symbol in cmd.get("reload"): #Recharger
+        print("Play son gunreload")
+        gunreload.play()
+        print("Rechargement arme")
+
+    if est_pressee(cmd["use"]): #Utiliser objet
+        print("Utiliser")
+
+    if est_pressee(cmd["jump"]): #saut
+        #Sauter !
+        print("Sauter")
+        pass
+
+@window2d.event
+def on_key_release(symbol, modifiers):
+    global release
+    release += 1
+    print("key release", symbol)
+
+    # print("\t\t\t\t\t\t\t\ton_key_release", release)
 
 @window2d.event
 def update(dt):
+    global loopnumber
+    loopnumber += 1
+    # print("on_loop", loopnumber)
+
     global x_joueur, y_joueur, angle_joueur, vitesse, coord
-
     # print(datetime.now())  #Vérif fréquence
-
     # if keys[key.ESCAPE]: pg.app.exit() # Echap pour quitter
-
     # if keys[key.UP] or keys[key.Z]:  # Haut
-    if press(cmd["forward"]):  # Haut
+
+    # Touches d'actions continues (Poursuivre l'exécution en maintenant la touche)
+
+    if keys[key.ESCAPE]: pg.app.exit() # Echap pour quitter
+
+    if est_pressee(cmd["forward"]):  # Haut
         x_joueur += vitesse * cos(angle_joueur)
         y_joueur += vitesse * sin(angle_joueur)
         coord = f"{round(x_joueur)}, {round(y_joueur)}"
 
-    if press(cmd["backward"]):  # Bas
+    if est_pressee(cmd["backward"]):  # Bas
         x_joueur -= 0.75 * vitesse * cos(angle_joueur)
         y_joueur -= 0.75 * vitesse * sin(angle_joueur)
         coord = f"{round(x_joueur)}, {round(y_joueur)}"
 
-    if press(cmd["straf_left"]):  # Gauche
+    if est_pressee(cmd["straf_left"]):  # Gauche
         x_joueur -= 0.9 * vitesse * sin(angle_joueur)
         y_joueur += 0.9 * vitesse * cos(angle_joueur)
         coord = f"{round(x_joueur)}, {round(y_joueur)}"
 
-    if press(cmd["straf_right"]):  # Droite
+    if est_pressee(cmd["straf_right"]):  # Droite
         x_joueur += 0.9 * vitesse * sin(angle_joueur)
         y_joueur -= 0.9 * vitesse * cos(angle_joueur)
         coord = f"{round(x_joueur)}, {round(y_joueur)}"
-    
-    if press(cmd["reload"]): #recharger
-        print("Rechargement arme")
 
-    if press(cmd["backward"]): #Utiliser objet
-        print("Utiliser")
-
-    if press(cmd["walk"]): #marcher au lieu de courir
+    if est_pressee(cmd["walk"]): #marcher au lieu de courir
         # Diminuer vitesse d'avance du joueur
         vitesse = vitesse_max / 2
         print("Marcher")
     else:
         vitesse = vitesse_max
 
-    if press(cmd["jump"]): #saut
-        #Sauter !
-        print("Sauter")
-        pass
-
 # Configuration de la fonction de mise à jour avec functools.partial
-pg.clock.schedule_interval(update, 1/120)
+# pg.clock.schedule_interval(update, 1/20)
 # lancement du jeu
 # pg.clock.schedule(on_key_press) #test
-# pg.app.run()  # 60Hz
+pg.clock.schedule(update)
 
 # pg.clock.set_fps_limit(60)  # Réglez la fréquence de rafraîchissement à 60 FPS
-pg.app.run(1/60)
 
+if __name__ == '__main__':
+    pg.app.run(1/120)
+# pg.app.run()  # 60Hz par défaut
+# pg.app.run(1/120)
+
+print("----------------")
 print("Programme terminé")
+print("----------------")
+print("on_draw", draw)
+print("on_key_release", release)
+print("key press", press)
+print("on_loop", loopnumber)
