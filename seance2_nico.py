@@ -22,7 +22,7 @@ cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou
        "zoom":        [4] #clic droit
        }
 
-# Configuration des vaiables
+# Configuration des variables
 
 fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
@@ -71,6 +71,9 @@ def centrer_image(image):
     image.anchor_y = image.height // 2
 
 centrer_image(player_image)
+
+arrierePlan = pg.image.SolidColorImagePattern((181,181,181,255)).create_image(fenetre2D_largeur, fenetre2D_hauteur)
+
 
 # Création des sprites, ce sont des instances 
 # des images, affichés à l'écran
@@ -130,6 +133,8 @@ def on_resize(width, height):
 @window2d.event
 def on_draw():
     window2d.clear()
+
+    arrierePlan.blit(0,0) #arrière plan
 
     # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
     player_sprite.x = x_joueur
