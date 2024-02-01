@@ -1,0 +1,4 @@
+
+murs = []
+
+murs.append(Murs(x, y, largeur, longueur))

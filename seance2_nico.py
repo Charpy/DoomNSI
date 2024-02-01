@@ -8,6 +8,7 @@ from pyglet.window import key
 from math import cos, sin, pi
 from random import randint
 from datetime import datetime  # Juste pour quelques tests
+from lib import *
 
 # Configuration des commandes
 cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou haut
@@ -27,15 +28,18 @@ cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou
 fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
 sensi_horizontale = 0.01
-vitesse_max = 0.0125
+vitesse_max = 0.4
 
+# Joueurs, à partir d'ici ne plus rien configurer !
 x_joueur = fenetre2D_largeur // 2
 y_joueur = fenetre2D_hauteur // 2
+coord = f"{x_joueur} , {y_joueur}"
+
 angle_joueur = pi/2 # Angle  initial en rad (0 = vers la droite)
 vitesse = vitesse_max
 
 
-
+#Statistiques : compteurs de touches pressés (press, release), de frames dessinées (draw) et de boucle d'actualisation (loopnumber)
 press, release, draw, loopnumber, last_loopnumber = 0, 0, 0, 0, 0
 
 
@@ -55,8 +59,9 @@ keys = key.KeyStateHandler()
 window2d.push_handlers(keys)
 
 # Groupes d'objets à dessiner
-joueur = pg.graphics.Batch()
+joueur = pg.graphics.Batch() #visuel du joueur et effets spéciaux
 gui = pg.graphics.Batch() # interface joueur
+carte = pg.graphics.Batch() # dessin 2D de la map
 
 #Chargement des ressources (images, sons..)
 pg.resource.path = ['assets/']
@@ -75,9 +80,13 @@ centrer_image(player_image)
 arrierePlan = pg.image.SolidColorImagePattern((181,181,181,255)).create_image(fenetre2D_largeur, fenetre2D_hauteur)
 
 
+murs = []
+murs.append(Mur(x = 200, y = 100, largeur = 300, longueur = 10, hauteur = 2, orientation = 45))  # x, y, largeur longueur
+
+
 # Création des sprites, ce sont des instances 
 # des images, affichés à l'écran
-player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur)
+player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur, batch=joueur)
 player_sprite.rotation = -angle_joueur*180/pi #Orientation initiale du sprite
 
 # Initialisation de la musique d'ambiance
@@ -92,9 +101,8 @@ ambiance.play()
 
 
 #Chargement des infos sur la fenêtre
-coord = str(x_joueur) + "," + str(y_joueur)
-coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15)
-titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.height - 15, anchor_x='center')
+coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15, batch=gui)
+titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.height - 15, anchor_x='center', batch=gui)
 
 # détection d'un mouvement de la souris
 @window2d.event
@@ -124,35 +132,15 @@ def on_mouse_press(x, y, button, modifiers):
 # On recalcule les positions de l'interface
 @window2d.event
 def on_resize(width, height):
-    global titre2D_label, coord_label
+    global titre2D_label, coord_label, arrierePlan
     print("on_resize a été appelé")
-    coord_label = pg.text.Label(coord, x=5, y=height - 15)
-    titre2D_label = pg.text.Label(text="Vue 2D", x=width//2, y=height - 15, anchor_x='center') #Au cas où la fenetre ait été redimensionnée
-
-# Evènement principal : rendu graphique
-@window2d.event
-def on_draw():
-    window2d.clear()
-
-    arrierePlan.blit(0,0) #arrière plan
-
-    # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
-    player_sprite.x = x_joueur
-    player_sprite.y = y_joueur
-    player_sprite.draw()
-
-    line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, batch = joueur)
+    coord_label.x = 5
+    coord_label.y = height - 15
+    titre2D_label.x = width // 2
+    titre2D_label.y = height - 15
     
-    coord_label.text = coord
-    coord_label.draw()
-
-    titre2D_label.draw()
-
-    joueur.draw()
-
-    # print("refresh!")
-    # print(datetime.now())
-
+    #On redessine l'arrière-plan
+    arrierePlan = pg.image.SolidColorImagePattern((181,181,181,255)).create_image(width, height)
 # @window2d.event
 # def on_draw():
 #     global draw, last_loopnumber, loopnumber
@@ -169,8 +157,32 @@ def est_pressee(touches):
 # def est_pressee(touches):
 #     print("touches",touches)
 #     for touche in touches:
-
 #     return True in list(map(lambda x:keys[x]==True , touches))
+
+# Evènement principal : rendu graphique
+@window2d.event
+def on_draw():
+    window2d.clear()
+
+    arrierePlan.blit(0,0) #arrière plan
+
+    # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
+
+
+    line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, color = (255, 255, 255, 100), batch = joueur)
+    
+    coord_label.draw()
+
+    titre2D_label.draw()
+
+    joueur.draw()
+
+    # test.dessiner()
+    for mur in murs:
+        mur.dessiner()
+
+    # print("refresh!")
+    # print(datetime.now())
 
 
 
@@ -204,6 +216,8 @@ def on_key_release(symbol, modifiers):
     global release
     release += 1
     print("key release", symbol)
+
+
 
     # print("\t\t\t\t\t\t\t\ton_key_release", release)
 
@@ -245,9 +259,34 @@ def update(dt):
     if est_pressee(cmd["walk"]): #marcher au lieu de courir
         # Diminuer vitesse d'avance du joueur
         vitesse = vitesse_max / 2
+        print("vitesse :", vitesse)
         print("Marcher")
     else:
+        # to-do : mettre cette partie dans key_release
         vitesse = vitesse_max
+        print("vitesse :", vitesse)
+
+    
+    #Maj des élements a afficher
+    player_sprite.x = x_joueur
+    player_sprite.y = y_joueur
+    coord_label.text = coord
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Configuration de la fonction de mise à jour avec functools.partial
 # pg.clock.schedule_interval(update, 1/20)
