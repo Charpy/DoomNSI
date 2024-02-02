@@ -30,6 +30,7 @@ fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
 sensi_horizontale = 0.01
 vitesse_max = 0.15 #0.15
+mute = False
 
 # Joueurs, à partir d'ici ne plus rien configurer !
 x_joueur = fenetre2D_largeur // 2
@@ -111,7 +112,7 @@ piece_de_spawn = [
 (116,81),
 (174,81)
                 ]
-spawn = pg.shapes.Polygon(*piece_de_spawn, color = (27,35,81,128), batch = carte)
+spawn = pg.shapes.Polygon(*piece_de_spawn, color = (27,35,81,255), batch = carte)
 
 
 
@@ -128,7 +129,7 @@ gunfire = pg.resource.media('beretta m12 9 mm.mp3', streaming=False) # streaming
 gunreload = pg.resource.media('Pistolet-reload.mp3', streaming=False)
 
 # etatSons = {} #Etat d'un son (non joué / joué), utile pour certains sons qui ne doivent pas s'auto-chevaucher
-ambiance.play()
+if not mute : ambiance.play()
 
 
 #Chargement des infos sur la fenêtre
@@ -145,6 +146,7 @@ def on_mouse_motion(x, y, dx, dy):
     player_sprite.rotation = -angle_joueur*180/pi #angle de rot (en deg)
     
     angle_joueur = angle_joueur % (2*pi) # conserver l'angle entre 0 et 2pi
+    
 
 # détection d'un clic de la souris
 @window2d.event
@@ -153,7 +155,7 @@ def on_mouse_press(x, y, button, modifiers):
     if button in cmd["fire"]: #Tir principal
       #Tirer
       print("Tir")
-      gunfire.play()
+      if not mute: gunfire.play()
     
     if button in cmd["zoom"]: #Zoom de l'arme en main
       #Zoom
@@ -200,7 +202,6 @@ def on_draw():
     # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
 
 
-    line = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, color = (255, 255, 255, 100), batch = joueur)
     
     coord_label.draw()
 
@@ -235,7 +236,7 @@ def on_key_press(symbol, modifiers):
 
     if symbol in cmd.get("reload"): #Recharger
         print("Play son gunreload")
-        gunreload.play()
+        if not mute : gunreload.play()
         print("Rechargement arme")
 
     if est_pressee(cmd["use"]): #Utiliser objet
@@ -306,6 +307,7 @@ def update(dt):
     player_sprite.x = x_joueur
     player_sprite.y = y_joueur
     coord_label.text = coord
+    ligne_du_regard = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, color = (255, 255, 255, 100), batch = joueur)
 
 
 
