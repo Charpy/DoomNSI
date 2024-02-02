@@ -10,6 +10,7 @@ from random import randint
 from datetime import datetime  # Juste pour quelques tests
 from lib import *
 
+
 # Configuration des commandes
 cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou haut
        "backward":    [pg.window.key.DOWN , pg.window.key.S], #vers l'arrière : S ou bas
@@ -28,7 +29,7 @@ cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou
 fenetre2D_largeur = 640
 fenetre2D_hauteur = 400
 sensi_horizontale = 0.01
-vitesse_max = 0.4
+vitesse_max = 0.15 #0.15
 
 # Joueurs, à partir d'ici ne plus rien configurer !
 x_joueur = fenetre2D_largeur // 2
@@ -81,13 +82,43 @@ arrierePlan = pg.image.SolidColorImagePattern((181,181,181,255)).create_image(fe
 
 
 murs = []
-murs.append(Mur(x = 200, y = 100, largeur = 300, longueur = 10, hauteur = 2, orientation = 45))  # x, y, largeur longueur
+#Bordure de la carte, par précaution..
+murs.append(Mur(x = 5, y = 5, largeur = window2d.width-10, longueur = 10, hauteur = 2, orientation = 0))  # bordure bas
+murs.append(Mur(x = 5, y = window2d.height-30, largeur = window2d.width-10, longueur = 10, hauteur = 2, orientation = 0))  # bordure haut
+murs.append(Mur(x = 5, y = 5, largeur = 10, longueur = window2d.height-30, hauteur = 2, orientation = 0))  # bordure gauche
+murs.append(Mur(x = window2d.width-15, y = 5, largeur = 10, longueur = window2d.height-30, hauteur = 2, orientation = 0))  # bordure droite
+
+#Carte partielle du niveau 1 du Doom original
+# voir https://www.classicdoom.com/maps/d1maps/e1m1.htm
+
+piece_de_spawn = [
+                (230,39),
+(258,39),
+(258,25),
+(288,25),
+(288,39),
+(316,39),
+(374,81),
+(402,81),
+(402,383),
+(232,383),
+(174,353),
+(116,353),
+(116,283),
+(30,267),
+(30,183),
+(116,167),
+(116,81),
+(174,81)
+                ]
+spawn = pg.shapes.Polygon(*piece_de_spawn, color = (27,35,81,128), batch = carte)
+
 
 
 # Création des sprites, ce sont des instances 
 # des images, affichés à l'écran
 player_sprite = pg.sprite.Sprite(player_image, x_joueur, y_joueur, batch=joueur)
-player_sprite.rotation = -angle_joueur*180/pi #Orientation initiale du sprite
+player_sprite.rotation = -angle_joueur*180/pi #Orientation initiale du sprite, en deg (haut)
 
 # Initialisation de la musique d'ambiance
 # Bonnes musiques d'ambiance libres : https://incompetech.com/music/royalty-free/music.html
@@ -101,8 +132,8 @@ ambiance.play()
 
 
 #Chargement des infos sur la fenêtre
-coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15, batch=gui)
-titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.height - 15, anchor_x='center', batch=gui)
+coord_label = pg.text.Label(coord, x=5, y=window2d.height - 15, color=(27,35,81,255), batch=gui)
+titre2D_label = pg.text.Label(text="Vue 2D", x=window2d.width//2, y=window2d.height - 15, color=(27,35,81,255), anchor_x='center', batch=gui)
 
 # détection d'un mouvement de la souris
 @window2d.event
@@ -178,9 +209,13 @@ def on_draw():
     joueur.draw()
 
     # test.dessiner()
-    for mur in murs:
-        mur.dessiner()
+    # for mur in murs:
+    #     mur.dessiner()
 
+    spawn.draw()
+    # shapes.Circle(x=230, y=44, radius=5, color=(255,255,255,255)).draw()
+
+    joueur.draw()
     # print("refresh!")
     # print(datetime.now())
 

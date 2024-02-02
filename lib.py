@@ -9,7 +9,7 @@ class Mur:
         self.hauteur = hauteur
         self.orientation = orientation # en degré
 
-        image = pyglet.image.SolidColorImagePattern((0, 19, 127,255)).create_image(self.largeur, self.longueur)
+        image = pyglet.image.SolidColorImagePattern((27,35,81,255)).create_image(self.largeur, self.longueur)
         # image.anchor_x = self.largeur // 2
         # image.anchor_y = self.longueur // 2
 
