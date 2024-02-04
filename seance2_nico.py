@@ -26,11 +26,11 @@ cmd = {"forward":     [pg.window.key.UP , pg.window.key.Z], #vers l'avant : Z ou
 
 # Configuration des variables
 
-fenetre2D_largeur = 640
-fenetre2D_hauteur = 400
+fenetre2D_largeur = 620
+fenetre2D_hauteur = 630
 sensi_horizontale = 0.01
 vitesse_max = 0.15 #0.15
-mute = False
+mute = True
 
 # Joueurs, à partir d'ici ne plus rien configurer !
 x_joueur = fenetre2D_largeur // 2
@@ -41,6 +41,7 @@ angle_joueur = pi/2 # Angle  initial en rad (0 = vers la droite)
 vitesse = vitesse_max
 
 
+
 #Statistiques : compteurs de touches pressés (press, release), de frames dessinées (draw) et de boucle d'actualisation (loopnumber)
 press, release, draw, loopnumber, last_loopnumber = 0, 0, 0, 0, 0
 
@@ -49,7 +50,7 @@ press, release, draw, loopnumber, last_loopnumber = 0, 0, 0, 0, 0
 
 # création de la fenêtre pour le plan 2D
 # résolution : 320x200 (comme le Doom de l'époque)
-window2d = pg.window.Window(640, 400, "Plan 2D", vsync=False , resizable=True)
+window2d = pg.window.Window(fenetre2D_largeur, fenetre2D_hauteur, "Plan 2D", vsync=False , resizable=True)
 # A retirer quand on aura la fenêtre 3D:
 # mettre "mouse exclusive mode" pour masquer le curseur de la souris
 # voir https://pyglet.readthedocs.io/en/latest/programming_guide/mouse.html#mouse-exclusivity
@@ -83,7 +84,7 @@ arrierePlan = pg.image.SolidColorImagePattern((181,181,181,255)).create_image(fe
 
 
 murs = []
-#Bordure de la carte, par précaution..
+#Mur en bordure de la carte..
 murs.append(Mur(x = 5, y = 5, largeur = window2d.width-10, longueur = 10, hauteur = 2, orientation = 0))  # bordure bas
 murs.append(Mur(x = 5, y = window2d.height-30, largeur = window2d.width-10, longueur = 10, hauteur = 2, orientation = 0))  # bordure haut
 murs.append(Mur(x = 5, y = 5, largeur = 10, longueur = window2d.height-30, hauteur = 2, orientation = 0))  # bordure gauche
@@ -92,27 +93,50 @@ murs.append(Mur(x = window2d.width-15, y = 5, largeur = 10, longueur = window2d.
 #Carte partielle du niveau 1 du Doom original
 # voir https://www.classicdoom.com/maps/d1maps/e1m1.htm
 
-piece_de_spawn = [
-                (230,39),
-(258,39),
-(258,25),
-(288,25),
-(288,39),
-(316,39),
-(374,81),
-(402,81),
-(402,383),
-(232,383),
-(174,353),
-(116,353),
-(116,283),
-(30,267),
-(30,183),
-(116,167),
-(116,81),
-(174,81)
+piece_de_spawn_coord = [
+                    (330,51),
+                    (372,51),
+                    (372,30),
+                    (417,30),
+                    (417,51),
+                    (459,51),
+                    (546,114),
+                    (588,114),
+                    (588,567),
+                    (333,567),
+                    (246,522),
+                    (159,522),
+                    (159,417),
+                    (30,393),
+                    (30,267),
+                    (159,243),
+                    (159,114),
+                    (246,114),
+                    (330,51)
                 ]
-spawn = pg.shapes.Polygon(*piece_de_spawn, color = (27,35,81,255), batch = carte)
+
+piece_de_spawn = []
+# spawn = pg.shapes.Polygon(*piece_de_spawn, color = (27,35,81,255), batch = carte)
+
+for i in range(len(piece_de_spawn_coord)-1):
+    piece_de_spawn.append(shapes.Line(piece_de_spawn_coord[i][0], piece_de_spawn_coord[i][1], piece_de_spawn_coord[i+1][0], piece_de_spawn_coord[i+1][1], width =5, color = (255, 255, 255, 100), batch = carte))
+
+
+
+pillier1 = [(288,222),(309,222),(309,243),(288,243),(288,222)]
+pillier2 = [(480,222),(501,222),(501,243),(480,243),(480,222)]
+pillier3 = [(480,417),(501,417),(501,438),(480,438),(480,417)]
+pillier4 = [(288,417),(309,417),(309,438),(288,438),(288,417)]
+
+pilliers = []
+for i in range(len(pillier1)-1):
+    pilliers.append(shapes.Line(pillier1[i][0], pillier1[i][1], pillier1[i+1][0], pillier1[i+1][1], width = 5, color = (255, 255, 255, 100), batch = carte))
+for i in range(len(pillier2)-1):
+    pilliers.append(shapes.Line(pillier2[i][0], pillier2[i][1], pillier2[i+1][0], pillier2[i+1][1], width = 5, color = (255, 255, 255, 100), batch = carte))
+for i in range(len(pillier3)-1):
+    pilliers.append(shapes.Line(pillier3[i][0], pillier3[i][1], pillier3[i+1][0], pillier3[i+1][1], width = 5, color = (255, 255, 255, 100), batch = carte))
+for i in range(len(pillier4)-1):
+    pilliers.append(shapes.Line(pillier4[i][0], pillier4[i][1], pillier4[i+1][0], pillier4[i+1][1], width = 5, color = (255, 255, 255, 100), batch = carte))
 
 
 
@@ -198,22 +222,27 @@ def on_draw():
     window2d.clear()
 
     arrierePlan.blit(0,0) #arrière plan
+    # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)
+    ligne_du_regard = shapes.Line(x_joueur, y_joueur, x_joueur + 100*cos(angle_joueur), y_joueur+100*sin(angle_joueur), width = 7, color = (255, 255, 255, 100), batch = joueur)
 
-    # cercle = shapes.Circle(x_joueur, y_joueur, radius=20, color=(50, 225, 30), batch = joueur)    
-
-
-    
     coord_label.draw()
-
     titre2D_label.draw()
-
     joueur.draw()
 
     # test.dessiner()
-    # for mur in murs:
-    #     mur.dessiner()
+    for mur in murs:
+        mur.dessiner()
 
-    spawn.draw()
+    # for i in range(len(piece_de_spawn)-1):
+    #     shapes.Line(piece_de_spawn[i][0], piece_de_spawn[i][1], piece_de_spawn[i+1][0], piece_de_spawn[i+1][1], width = 4, color = (255, 255, 255, 100), batch = carte).draw()
+
+    for element in piece_de_spawn:
+        element.draw()
+
+    for element in pilliers:
+        element.draw()
+
+    carte.draw()
     # shapes.Circle(x=230, y=44, radius=5, color=(255,255,255,255)).draw()
 
     joueur.draw()
